@@ -11,7 +11,8 @@ terraform-modular-webapp/
 │   ├── security_group/  # Security groups
 │   ├── ec2_instance/    # EC2 instances
 │   ├── rds/             # RDS database
-│   └── s3_bucket/       # S3 bucket
+│   ├── s3_bucket/       # S3 bucket
+│   └── iam/             # IAM roles and policies (EC2 access to S3 and other AWS services)
 ├── envs/
 │   ├── dev/             # Development environment
 │   └── prod/            # Production environment
@@ -27,6 +28,7 @@ terraform-modular-webapp/
 - **NAT Gateway** — allows outbound internet access from private subnets (e.g. package updates)
 - **Route Tables** — public route table (→ IGW) and private route table (→ NAT Gateway)
 - **Security Groups** — EC2 SG (SSH/HTTP/HTTPS inbound, all outbound) and RDS SG (PostgreSQL inbound from EC2 only)
+- **IAM** — IAM role and instance profile for EC2 with policies for S3 access and other AWS services
 
 ## Module Status
 
@@ -37,6 +39,7 @@ terraform-modular-webapp/
 | ec2_instance   | Planned  |
 | rds            | Planned  |
 | s3_bucket      | Planned  |
+| iam            | Planned  |
 
 ## Requirements
 
