@@ -13,6 +13,6 @@ terraform {
 }
 
 provider "aws" {
-  region  = "us-east-1"
-  profile = "dev-profile"
+  region  = "eu-central-1"
+  profile = "default"
 }
