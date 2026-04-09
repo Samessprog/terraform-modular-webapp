@@ -26,16 +26,17 @@ terraform-modular-webapp/
 - **Internet Gateway** — allows inbound/outbound internet access from public subnets
 - **NAT Gateway** — allows outbound internet access from private subnets (e.g. package updates)
 - **Route Tables** — public route table (→ IGW) and private route table (→ NAT Gateway)
+- **Security Groups** — EC2 SG (SSH/HTTP/HTTPS inbound, all outbound) and RDS SG (PostgreSQL inbound from EC2 only)
 
 ## Module Status
 
-| Module         | Status      |
-|----------------|-------------|
-| vpc            | Done        |
-| security_group | In progress |
-| ec2_instance   | Planned     |
-| rds            | Planned     |
-| s3_bucket      | Planned     |
+| Module         | Status   |
+|----------------|----------|
+| vpc            | Done     |
+| security_group | Done     |
+| ec2_instance   | Planned  |
+| rds            | Planned  |
+| s3_bucket      | Planned  |
 
 ## Requirements
 

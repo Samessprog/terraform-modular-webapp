@@ -11,6 +11,7 @@ resource "aws_security_group" "sg_ec2" {
 
 resource "aws_vpc_security_group_egress_rule" "sg_egress_ec2" {
   ip_protocol       = "-1"
+  cidr_ipv4 = "0.0.0.0/0"
   security_group_id = aws_security_group.sg_ec2.id
 }
 
