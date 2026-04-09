@@ -7,7 +7,7 @@ Modular Terraform infrastructure for a web application hosted on AWS. The projec
 ```
 terraform-modular-webapp/
 ├── modules/
-│   ├── vpc/             # VPC, subnets, internet gateway, route tables
+│   ├── vpc/             # VPC, subnets, internet gateway, NAT gateway, route tables
 │   ├── security_group/  # Security groups
 │   ├── ec2_instance/    # EC2 instances
 │   ├── rds/             # RDS database
@@ -20,10 +20,22 @@ terraform-modular-webapp/
 
 ## Infrastructure Overview
 
-- **VPC** with public and private subnets across 2 availability zones (us-east-1a, us-east-1b)
+- **VPC** with public and private subnets across 2 availability zones (eu-central-1a, eu-central-1b)
 - **Public subnets** — for EC2 instances accessible from the internet
-- **Private subnets** — for RDS database, isolated from the internet
-- **Internet Gateway** — allows outbound internet access from public subnets
+- **Private subnets** — for RDS database and EC2 instances isolated from the internet
+- **Internet Gateway** — allows inbound/outbound internet access from public subnets
+- **NAT Gateway** — allows outbound internet access from private subnets (e.g. package updates)
+- **Route Tables** — public route table (→ IGW) and private route table (→ NAT Gateway)
+
+## Module Status
+
+| Module         | Status      |
+|----------------|-------------|
+| vpc            | Done        |
+| security_group | In progress |
+| ec2_instance   | Planned     |
+| rds            | Planned     |
+| s3_bucket      | Planned     |
 
 ## Requirements
 
