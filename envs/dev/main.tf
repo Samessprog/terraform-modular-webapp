@@ -44,6 +44,12 @@ module "backend_1b" {
   key_name          = var.key_name
 }
 
+module "alb" {
+  source = "../../modules/alb"
+  security_group_id = module.security_group.alb_sg_id
+  subnet_ids        = [module.vpc.public_subnet_1a_id, module.vpc.public_subnet_1b_id]
+  environment       = var.environment
+}
 
 resource "local_file" "ssh_info" {
   content  = <<-EOT
