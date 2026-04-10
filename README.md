@@ -10,6 +10,7 @@ terraform-modular-webapp/
 │   ├── vpc/             # VPC, subnets, internet gateway, NAT gateway, route tables
 │   ├── security_group/  # Security groups
 │   ├── ec2_instance/    # EC2 instances
+│   ├── alb/             # Application Load Balancer
 │   ├── rds/             # RDS database
 │   ├── s3_bucket/       # S3 bucket
 │   └── iam/             # IAM roles and policies (EC2 access to S3 and other AWS services)
@@ -36,7 +37,8 @@ terraform-modular-webapp/
 |----------------|----------|
 | vpc            | Done     |
 | security_group | Done     |
-| ec2_instance   | Planned  |
+| ec2_instance   | Done     |
+| alb            | In Progress |
 | rds            | Planned  |
 | s3_bucket      | Planned  |
 | iam            | Planned  |
