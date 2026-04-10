@@ -8,7 +8,7 @@ variable "environment" {
   type        = string
 }
 
-variable "my_ec2_ip" {
-  description = "My IP address for SSH access in CIDR format"
+variable "my_ip" {
+  description = "My IP address for SSH access to bastion in CIDR format (e.g. 1.2.3.4/32)"
   type        = string
 }

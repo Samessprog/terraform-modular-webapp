@@ -35,6 +35,11 @@ variable "private_subnet_1b_cidr" {
 }
 
 variable "my_ip" {
-  description = "My IP address for SSH access in CIDR format"
-  type = string
+  description = "My IP address for SSH access in CIDR format (e.g. 1.2.3.4/32)"
+  type        = string
+}
+
+variable "key_name" {
+  description = "SSH key pair name for EC2 instance access"
+  type        = string
 }
