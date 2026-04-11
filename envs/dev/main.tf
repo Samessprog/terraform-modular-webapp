@@ -57,6 +57,17 @@ module "alb" {
   }
 }
 
+module "rds" {
+  source = "../../modules/rds"
+  environment = var.environment
+  subnet_ids = [module.vpc.private_subnet_1a_id, module.vpc.private_subnet_1b_id]
+  security_group_id = module.security_group.rds_sg_id
+  instance_class = "db.t3.micro"
+  db_name = var.db_name
+  db_user_name = var.db_user_name
+  db_password = var.db_password
+}
+
 resource "local_file" "ssh_info" {
   content  = <<-EOT
       bastion_ip       = ${module.bastion.public_ip}

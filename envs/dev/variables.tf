@@ -43,3 +43,19 @@ variable "key_name" {
   description = "SSH key pair name for EC2 instance access"
   type        = string
 }
+
+variable "db_user_name" {
+  description = "user for RDS"
+  type = string
+}
+
+variable "db_password" {
+  description = "password for RDS"
+  type = string
+  sensitive = true
+}
+
+variable "db_name" {
+  description = "RDS name"
+  type = string
+}
