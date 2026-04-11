@@ -10,14 +10,14 @@ module "vpc" {
 }
 
 module "security_group" {
-  source = "../../modules/security_group"
-  environment            = var.environment
-  vpc_id = module.vpc.vpc_id
-  my_ip = var.my_ip
+  source      = "../../modules/security_group"
+  environment = var.environment
+  vpc_id      = module.vpc.vpc_id
+  my_ip       = var.my_ip
 }
 
 module "bastion" {
-  source = "../../modules/ec2_instance"
+  source            = "../../modules/ec2_instance"
   environment       = var.environment
   name              = "bastion"
   instance_type     = "t3.micro"
@@ -44,6 +44,18 @@ module "backend_1b" {
   key_name          = var.key_name
 }
 
+module "alb" {
+  source            = "../../modules/alb"
+  security_group_id = module.security_group.alb_sg_id
+  subnet_ids        = [module.vpc.public_subnet_1a_id, module.vpc.public_subnet_1b_id]
+  environment       = var.environment
+  vpc_id            = module.vpc.vpc_id
+  certificate_arn   = ""
+  instance_ids = {
+    backend_1a = module.backend_1a.instance_id
+    backend_1b = module.backend_1b.instance_id
+  }
+}
 
 resource "local_file" "ssh_info" {
   content  = <<-EOT
