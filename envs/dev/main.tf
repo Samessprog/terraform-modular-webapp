@@ -88,12 +88,33 @@ resource "local_file" "ssh_info" {
 }
 
 module "acm" {
-  source = "../../modules/acm"
+  source      = "../../modules/acm"
   domain_name = var.domain_name
 
   providers = {
     aws           = aws
     aws.us_east_1 = aws.us_east_1
   }
+}
 
+module "s3_frontend" {
+  source      = "../../modules/s3_bucket"
+  bucket_name = "frontend-${var.environment}-nerox"
+  environment = var.environment
+  versioning_enabled = false
+
+  tags = {
+    Purpose = "frontend"
+  }
+}
+
+module "s3_backend" {
+  source      = "../../modules/s3_bucket"
+  bucket_name = "backend-${var.environment}-nerox"
+  environment = var.environment
+  versioning_enabled = true
+
+  tags = {
+    Purpose = "backend"
+  }
 }
