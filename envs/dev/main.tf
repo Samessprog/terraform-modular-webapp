@@ -60,7 +60,7 @@ module "alb" {
   subnet_ids        = [module.vpc.public_subnet_1a_id, module.vpc.public_subnet_1b_id]
   environment       = var.environment
   vpc_id            = module.vpc.vpc_id
-  certificate_arn   = ""
+  certificate_arn   = module.acm.alb_certificate_arn
   instance_ids = {
     backend_1a = module.backend_1a.instance_id
     backend_1b = module.backend_1b.instance_id
@@ -85,4 +85,15 @@ resource "local_file" "ssh_info" {
       backend_1b_ip    = ${module.backend_1b.private_ip}
     EOT
   filename = "${path.module}/ssh_info.txt"
+}
+
+module "acm" {
+  source = "../../modules/acm"
+  domain_name = var.domain_name
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+
 }
