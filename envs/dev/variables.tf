@@ -59,3 +59,9 @@ variable "db_name" {
   description = "RDS name"
   type = string
 }
+
+variable "domain_name" {
+  description = "my domain name for cert"
+  type = string
+  default = "nerox.xyz"
+}
