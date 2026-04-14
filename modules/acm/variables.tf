@@ -1,5 +1,5 @@
 variable "domain_name" {
-  default = "nerox.xyz"
+  default     = "nerox.xyz"
   description = "my domain name for cert"
-  type = string
+  type        = string
 }

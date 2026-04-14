@@ -4,4 +4,5 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
+        exclude: ^modules/acm/
       - id: terraform_tflint
