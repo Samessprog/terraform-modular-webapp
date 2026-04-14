@@ -1,5 +1,8 @@
 # Terraform Modular Web App
 
+![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.5.0-623CE4?logo=terraform)
+![CI](https://github.com/sames/terraform-modular-webapp/actions/workflows/ci.yml/badge.svg)
+
 Modular Terraform infrastructure for a web application hosted on AWS. The project demonstrates real-world infrastructure patterns using reusable modules, separated environments, remote state management, and automated CI/CD pipeline.
 
 ## Architecture
@@ -15,7 +18,7 @@ Modular Terraform infrastructure for a web application hosted on AWS. The projec
          CloudFront                           ALB
     (cdn.nerox.xyz)                   (api.nerox.xyz)
     ACM cert us-east-1                ACM cert eu-central-1
-               │                               │
+               │                         80 → 443 redirect
                ▼                          ┌────┴────┐
           S3 Frontend                     ▼         ▼
          (HTML/JS/CSS)               EC2-1a      EC2-1b
@@ -27,8 +30,8 @@ Modular Terraform infrastructure for a web application hosted on AWS. The projec
                        ▼                         ▼
                   RDS PostgreSQL             S3 Backend
                   (private subnet)          (uploads/files)
-                                                 ▲
-                                        IAM Role (EC2 access)
+                  backups: 7 days               ▲
+                                       IAM Role (EC2 access)
 ```
 
 ## Project Structure
@@ -40,11 +43,12 @@ terraform-modular-webapp/
 │   ├── vpc/             # VPC, subnets, internet gateway, NAT gateway, route tables
 │   ├── security_group/  # Security groups (ALB, Bastion, EC2, RDS)
 │   ├── ec2_instance/    # EC2 instances (bastion + backend)
-│   ├── alb/             # Application Load Balancer with HTTPS listener
-│   ├── rds/             # RDS PostgreSQL database
+│   ├── alb/             # Application Load Balancer, HTTPS listener, HTTP→HTTPS redirect
+│   ├── rds/             # RDS PostgreSQL with automated backups
 │   ├── acm/             # ACM certificates (eu-central-1 for ALB, us-east-1 for CloudFront)
 │   ├── s3_bucket/       # S3 buckets (frontend static hosting + backend file storage)
-│   └── iam/             # IAM roles and instance profiles (EC2 access to S3)
+│   ├── iam/             # IAM roles and instance profiles (EC2 access to S3)
+│   └── cloudtrail/      # AWS API audit logging to S3
 ├── envs/
 │   ├── dev/             # Development environment
 │   └── prod/            # Production environment
@@ -63,7 +67,7 @@ terraform-modular-webapp/
 - **Route Tables** — public (→ IGW) and private (→ NAT Gateway)
 
 ### Compute & Load Balancing
-- **ALB** — internet-facing Application Load Balancer with HTTPS listener (ACM certificate)
+- **ALB** — internet-facing Application Load Balancer with HTTPS listener, HTTP→HTTPS redirect (301)
 - **EC2 Bastion** — jump host in public subnet for SSH access to private instances
 - **EC2 Backend x2** — application servers in private subnets across 2 AZs
 
@@ -79,7 +83,11 @@ terraform-modular-webapp/
 - **Private Subnets** — EC2 backend and RDS isolated from the internet
 
 ### Database
-- **RDS PostgreSQL** — db.t3.micro in private subnet with automated backups
+- **RDS PostgreSQL** — db.t3.micro in private subnet, `backup_retention_period = 7` days, final snapshot on destroy
+
+### Observability
+- **CloudTrail** — all AWS API calls logged to S3, multi-region, log file validation enabled
+- **CloudWatch + SNS** — metrics and alerting (in progress)
 
 ### State Management
 - **Remote State** — Terraform state stored in S3 with DynamoDB state locking
@@ -96,7 +104,7 @@ Every pull request triggers:
 | Lint | `tflint` | Terraform-specific linting |
 | Security scan | `tfsec` | Detect misconfigurations |
 
-Pre-commit hooks run the same checks locally before every commit.
+Pre-commit hooks run fmt, validate and tflint locally before every commit.
 
 ## Module Status
 
@@ -109,7 +117,9 @@ Pre-commit hooks run the same checks locally before every commit.
 | rds            | Done     |
 | acm            | Done     |
 | s3_bucket      | Done     |
-| iam            | In Progress |
+| iam            | Done     |
+| cloudtrail     | Done     |
+| cloudfront     | Planned  |
 
 ## Requirements
 
