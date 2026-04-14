@@ -1,0 +1,6 @@
+name: Apply terraform
+
+on:
+  push:
+    branches:
+        - main

@@ -46,22 +46,22 @@ variable "key_name" {
 
 variable "db_user_name" {
   description = "user for RDS"
-  type = string
+  type        = string
 }
 
 variable "db_password" {
   description = "password for RDS"
-  type = string
-  sensitive = true
+  type        = string
+  sensitive   = true
 }
 
 variable "db_name" {
   description = "RDS name"
-  type = string
+  type        = string
 }
 
 variable "domain_name" {
   description = "my domain name for cert"
-  type = string
-  default = "nerox.xyz"
+  type        = string
+  default     = "nerox.xyz"
 }

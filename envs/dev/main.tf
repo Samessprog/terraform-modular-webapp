@@ -37,21 +37,23 @@ module "bastion" {
 }
 
 module "backend_1a" {
-  source            = "../../modules/ec2_instance"
-  environment       = var.environment
-  name              = "backend-1a"
-  subnet_id         = module.vpc.private_subnet_1a_id
-  security_group_id = module.security_group.ec2_sg_id
-  key_name          = var.key_name
+  source               = "../../modules/ec2_instance"
+  environment          = var.environment
+  name                 = "backend-1a"
+  subnet_id            = module.vpc.private_subnet_1a_id
+  security_group_id    = module.security_group.ec2_sg_id
+  key_name             = var.key_name
+  iam_instance_profile = module.iam.instance_profile_name
 }
 
 module "backend_1b" {
-  source            = "../../modules/ec2_instance"
-  environment       = var.environment
-  name              = "backend-1b"
-  subnet_id         = module.vpc.private_subnet_1b_id
-  security_group_id = module.security_group.ec2_sg_id
-  key_name          = var.key_name
+  source               = "../../modules/ec2_instance"
+  environment          = var.environment
+  name                 = "backend-1b"
+  subnet_id            = module.vpc.private_subnet_1b_id
+  security_group_id    = module.security_group.ec2_sg_id
+  key_name             = var.key_name
+  iam_instance_profile = module.iam.instance_profile_name
 }
 
 module "alb" {
@@ -68,14 +70,14 @@ module "alb" {
 }
 
 module "rds" {
-  source = "../../modules/rds"
-  environment = var.environment
-  subnet_ids = [module.vpc.private_subnet_1a_id, module.vpc.private_subnet_1b_id]
+  source            = "../../modules/rds"
+  environment       = var.environment
+  subnet_ids        = [module.vpc.private_subnet_1a_id, module.vpc.private_subnet_1b_id]
   security_group_id = module.security_group.rds_sg_id
-  instance_class = "db.t3.micro"
-  db_name = var.db_name
-  db_user_name = var.db_user_name
-  db_password = var.db_password
+  instance_class    = "db.t3.micro"
+  db_name           = var.db_name
+  db_user_name      = var.db_user_name
+  db_password       = var.db_password
 }
 
 resource "local_file" "ssh_info" {
@@ -98,9 +100,9 @@ module "acm" {
 }
 
 module "s3_frontend" {
-  source      = "../../modules/s3_bucket"
-  bucket_name = "frontend-${var.environment}-nerox"
-  environment = var.environment
+  source             = "../../modules/s3_bucket"
+  bucket_name        = "frontend-${var.environment}-nerox"
+  environment        = var.environment
   versioning_enabled = false
 
   tags = {
@@ -109,12 +111,19 @@ module "s3_frontend" {
 }
 
 module "s3_backend" {
-  source      = "../../modules/s3_bucket"
-  bucket_name = "backend-${var.environment}-nerox"
-  environment = var.environment
+  source             = "../../modules/s3_bucket"
+  bucket_name        = "backend-${var.environment}-nerox"
+  environment        = var.environment
   versioning_enabled = true
 
   tags = {
     Purpose = "backend"
   }
+}
+
+module "iam" {
+  source = "../../modules/iam"
+
+  environment           = var.environment
+  s3_backend_bucket_arn = module.s3_backend.bucket_arn
 }
