@@ -127,3 +127,9 @@ module "iam" {
   environment           = var.environment
   s3_backend_bucket_arn = module.s3_backend.bucket_arn
 }
+
+module "cloudtrail" {
+  source         = "../../modules/cloudtrail"
+  environment    = var.environment
+  s3_bucket_name = module.s3_backend.bucket_id
+}
