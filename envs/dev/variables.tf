@@ -65,3 +65,8 @@ variable "domain_name" {
   type        = string
   default     = "nerox.xyz"
 }
+
+variable "alarm_email" {
+  description = "Email address for CloudWatch alarm notifications"
+  type        = string
+}

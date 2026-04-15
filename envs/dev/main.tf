@@ -133,3 +133,16 @@ module "cloudtrail" {
   environment    = var.environment
   s3_bucket_name = module.s3_backend.bucket_id
 }
+
+module "cloudwatch" {
+  source      = "../../modules/cloudwatch"
+  environment = var.environment
+  alarm_email = var.alarm_email
+  ec2_instance_ids = {
+    backend_1a = module.backend_1a.instance_id
+    backend_1b = module.backend_1b.instance_id
+  }
+  alb_arn_suffix = module.alb.alb_arn_suffix
+  rds_identifier = module.rds.rds_identifier
+  cpu_threshold  = 75
+}
