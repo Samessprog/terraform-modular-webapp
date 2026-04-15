@@ -2,8 +2,9 @@
 
 ![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.5.0-623CE4?logo=terraform)
 ![CI](https://github.com/sames/terraform-modular-webapp/actions/workflows/ci.yml/badge.svg)
+![AWS](https://img.shields.io/badge/AWS-eu--central--1-FF9900?logo=amazonaws)
 
-Modular Terraform infrastructure for a web application hosted on AWS. The project demonstrates real-world infrastructure patterns using reusable modules, separated environments, remote state management, and automated CI/CD pipeline.
+Modular Terraform infrastructure for a production-grade web application hosted on AWS. Demonstrates real-world patterns: reusable modules, multi-environment setup (dev/prod), remote state management, security best practices, observability, and automated CI/CD pipeline.
 
 ## Architecture
 
@@ -30,11 +31,14 @@ Modular Terraform infrastructure for a web application hosted on AWS. The projec
                        ▼                         ▼
                   RDS PostgreSQL             S3 Backend
                   (private subnet)          (uploads/files)
-                  backups: 7 days               ▲
-                                       IAM Role (EC2 access)
+                  backups: 7 days           versioning enabled
+                                                 ▲
+                                        IAM Role (no hardcoded creds)
 
-          CloudWatch + SNS ──────────────────────────── alerting
-          CloudTrail ────────────────────────────────── audit logs → S3
+  ┌─ Observability ──────────────────────────────────────────────────┐
+  │  CloudWatch Alarms → SNS → Email   (CPU, ALB 5xx, RDS)          │
+  │  CloudTrail → S3                   (all API calls, multi-region) │
+  └──────────────────────────────────────────────────────────────────┘
 ```
 
 ## Project Structure
@@ -44,22 +48,22 @@ terraform-modular-webapp/
 ├── bootstrap/           # One-time setup: remote state S3 bucket + DynamoDB lock table
 ├── modules/
 │   ├── vpc/             # VPC, subnets, internet gateway, NAT gateway, route tables
-│   ├── security_group/  # Security groups (ALB, Bastion, EC2, RDS)
-│   ├── ec2_instance/    # EC2 instances (bastion + backend)
+│   ├── security_group/  # Security groups (ALB, Bastion, EC2, RDS) — least-privilege
+│   ├── ec2_instance/    # EC2 instances (bastion + 2x backend across AZs)
 │   ├── alb/             # Application Load Balancer, HTTPS listener, HTTP→HTTPS redirect
-│   ├── rds/             # RDS PostgreSQL with automated backups and final snapshot
+│   ├── rds/             # RDS PostgreSQL — backups, final snapshot on destroy
 │   ├── acm/             # ACM certificates (eu-central-1 for ALB, us-east-1 for CloudFront)
-│   ├── s3_bucket/       # S3 buckets (frontend static hosting + backend file storage)
-│   ├── iam/             # IAM roles and instance profiles (EC2 access to S3)
-│   ├── cloudtrail/      # AWS API audit logging to S3
-│   └── cloudwatch/      # CloudWatch alarms + SNS notifications
+│   ├── s3_bucket/       # Reusable S3 module (frontend static hosting + backend storage)
+│   ├── iam/             # IAM roles and instance profiles (EC2 → S3 access)
+│   ├── cloudtrail/      # AWS API audit logging to S3, multi-region, log validation
+│   └── cloudwatch/      # CloudWatch alarms (EC2/ALB/RDS) + SNS email notifications
 ├── envs/
-│   ├── dev/             # Development environment
-│   └── prod/            # Production environment
+│   ├── dev/             # Development environment (10.0.0.0/16)
+│   └── prod/            # Production environment (10.1.0.0/16)
 ├── .github/
 │   └── workflows/
 │       └── ci.yml       # CI pipeline (fmt, validate, tflint, tfsec)
-└── .pre-commit-config.yaml  # Pre-commit hooks for local development
+└── .pre-commit-config.yaml  # Pre-commit hooks (fmt, validate, tflint)
 ```
 
 ## Infrastructure Overview
@@ -67,36 +71,39 @@ terraform-modular-webapp/
 ### Networking
 - **VPC** with public and private subnets across 2 availability zones (eu-central-1a, eu-central-1b)
 - **Internet Gateway** — inbound/outbound internet access for public subnets
-- **NAT Gateway** — outbound internet access from private subnets
+- **NAT Gateway** — outbound internet access from private subnets (no public IPs on backends)
 - **Route Tables** — public (→ IGW) and private (→ NAT Gateway)
 
 ### Compute & Load Balancing
-- **ALB** — internet-facing Application Load Balancer with HTTPS listener, HTTP→HTTPS redirect (301)
+- **ALB** — internet-facing Application Load Balancer, HTTPS on port 443, HTTP→HTTPS redirect (301)
 - **EC2 Bastion** — jump host in public subnet for SSH access to private instances
-- **EC2 Backend x2** — application servers in private subnets across 2 AZs
+- **EC2 Backend x2** — application servers in private subnets, one per AZ (1a, 1b)
 
 ### Storage & CDN
-- **S3 Frontend** — static website hosting (HTML/JS/CSS)
-- **S3 Backend** — file storage for backend (uploads, assets) with versioning enabled
-- **CloudFront** — CDN distribution serving frontend from S3 with HTTPS
+- **S3 Frontend** — static website hosting (HTML/JS/CSS), public read via CloudFront
+- **S3 Backend** — file storage for backend (uploads, assets), versioning enabled
+- **CloudFront** — CDN distribution serving frontend from S3 with HTTPS (planned)
 
 ### Security
-- **Security Groups** — ALB SG, Bastion SG, EC2 SG, RDS SG with least-privilege rules
-- **ACM** — SSL/TLS certificates for ALB (eu-central-1) and CloudFront (us-east-1)
-- **IAM Roles** — EC2 instance profile with S3 access (no hardcoded credentials)
-- **Private Subnets** — EC2 backend and RDS isolated from the internet
+- **Security Groups** — separate SGs for ALB, Bastion, EC2, RDS with least-privilege rules
+- **ACM** — SSL/TLS certificates for ALB (eu-central-1) and CloudFront (us-east-1), multi-region
+- **IAM Roles** — EC2 instance profile with scoped S3 access, no hardcoded credentials
+- **Private Subnets** — EC2 backends and RDS are not reachable from the internet
 
 ### Database
-- **RDS PostgreSQL** — db.t3.micro in private subnet, `backup_retention_period = 7` days, final snapshot on destroy
+- **RDS PostgreSQL 16** — db.t3.micro in private subnet
+- Automated backups: `backup_retention_period = 7` days
+- `skip_final_snapshot = false` — snapshot created on destroy
 
 ### Observability
 - **CloudTrail** — all AWS API calls logged to S3, multi-region, log file validation enabled
-- **CloudWatch Alarms** — CPU utilization on EC2, ALB 5xx error rate, RDS storage monitoring
-- **SNS** — email notifications triggered by CloudWatch alarms
+- **CloudWatch Alarms** — EC2 CPU > 75%, ALB 5xx errors > 10/min, RDS CPU > 75%
+- **SNS** — email notifications triggered by any CloudWatch alarm
 
 ### State Management
 - **Remote State** — Terraform state stored in S3 with DynamoDB state locking
-- **State per environment** — `dev/terraform.tfstate`, `prod/terraform.tfstate`
+- **Per-environment state** — `dev/terraform.tfstate`, `prod/terraform.tfstate`
+- **Bootstrap** — separate root module to provision S3 + DynamoDB before first apply
 
 ## CI/CD Pipeline
 
@@ -106,10 +113,10 @@ Every pull request triggers:
 |------|------|---------|
 | Format check | `terraform fmt -check` | Enforce consistent formatting |
 | Validate | `terraform validate` | Syntax and configuration check |
-| Lint | `tflint` | Terraform-specific linting |
-| Security scan | `tfsec` | Detect misconfigurations |
+| Lint | `tflint` | Terraform-specific linting rules |
+| Security scan | `tfsec` | Detect security misconfigurations |
 
-Pre-commit hooks run fmt, validate and tflint locally before every commit.
+Pre-commit hooks run `fmt`, `validate` and `tflint` locally before every commit.
 
 ## Module Status
 
@@ -126,6 +133,14 @@ Pre-commit hooks run fmt, validate and tflint locally before every commit.
 | cloudtrail     | Done     |
 | cloudwatch     | Done     |
 | cloudfront     | Planned  |
+| secrets_manager| Planned  |
+
+## Environments
+
+| Environment | VPC CIDR     | State key              |
+|-------------|--------------|------------------------|
+| dev         | 10.0.0.0/16  | dev/terraform.tfstate  |
+| prod        | 10.1.0.0/16  | prod/terraform.tfstate |
 
 ## Requirements
 
@@ -146,7 +161,7 @@ terraform apply
 ### Deploy environment
 
 ```bash
-cd envs/dev
+cd envs/dev        # or envs/prod
 terraform init
 terraform plan
 terraform apply
