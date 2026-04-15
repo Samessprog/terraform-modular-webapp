@@ -32,6 +32,9 @@ Modular Terraform infrastructure for a web application hosted on AWS. The projec
                   (private subnet)          (uploads/files)
                   backups: 7 days               ▲
                                        IAM Role (EC2 access)
+
+          CloudWatch + SNS ──────────────────────────── alerting
+          CloudTrail ────────────────────────────────── audit logs → S3
 ```
 
 ## Project Structure
@@ -44,11 +47,12 @@ terraform-modular-webapp/
 │   ├── security_group/  # Security groups (ALB, Bastion, EC2, RDS)
 │   ├── ec2_instance/    # EC2 instances (bastion + backend)
 │   ├── alb/             # Application Load Balancer, HTTPS listener, HTTP→HTTPS redirect
-│   ├── rds/             # RDS PostgreSQL with automated backups
+│   ├── rds/             # RDS PostgreSQL with automated backups and final snapshot
 │   ├── acm/             # ACM certificates (eu-central-1 for ALB, us-east-1 for CloudFront)
 │   ├── s3_bucket/       # S3 buckets (frontend static hosting + backend file storage)
 │   ├── iam/             # IAM roles and instance profiles (EC2 access to S3)
-│   └── cloudtrail/      # AWS API audit logging to S3
+│   ├── cloudtrail/      # AWS API audit logging to S3
+│   └── cloudwatch/      # CloudWatch alarms + SNS notifications
 ├── envs/
 │   ├── dev/             # Development environment
 │   └── prod/            # Production environment
@@ -87,7 +91,8 @@ terraform-modular-webapp/
 
 ### Observability
 - **CloudTrail** — all AWS API calls logged to S3, multi-region, log file validation enabled
-- **CloudWatch + SNS** — metrics and alerting (in progress)
+- **CloudWatch Alarms** — CPU utilization on EC2, ALB 5xx error rate, RDS storage monitoring
+- **SNS** — email notifications triggered by CloudWatch alarms
 
 ### State Management
 - **Remote State** — Terraform state stored in S3 with DynamoDB state locking
@@ -119,6 +124,7 @@ Pre-commit hooks run fmt, validate and tflint locally before every commit.
 | s3_bucket      | Done     |
 | iam            | Done     |
 | cloudtrail     | Done     |
+| cloudwatch     | Done     |
 | cloudfront     | Planned  |
 
 ## Requirements
