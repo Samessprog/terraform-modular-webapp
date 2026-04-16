@@ -22,13 +22,13 @@ resource "aws_db_instance" "rds-instance" {
   engine                  = "postgres"
   engine_version          = "16"
   instance_class          = var.instance_class
-  allocated_storage       = 20
+  allocated_storage       = var.allocated_storage
   db_name                 = var.db_name
   username                = var.db_user_name
-  password                = var.db_password
+  password                = jsondecode(data.aws_secretsmanager_secret_version.rds_secrets.secret_string)["password"]
   db_subnet_group_name    = aws_db_subnet_group.rds-group.name
   vpc_security_group_ids  = [var.security_group_id]
-  backup_retention_period = 7
+  backup_retention_period = var.backup_retention_period
   skip_final_snapshot     = false
   lifecycle {
     prevent_destroy = true
@@ -37,4 +37,8 @@ resource "aws_db_instance" "rds-instance" {
     Name        = "${var.environment}-rds"
     Environment = var.environment
   }
+}
+
+data "aws_secretsmanager_secret_version" "rds_secrets" {
+  secret_id = var.secret_arn
 }

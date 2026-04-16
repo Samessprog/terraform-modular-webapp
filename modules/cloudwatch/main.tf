@@ -45,7 +45,7 @@ resource "aws_cloudwatch_metric_alarm" "ALB_5xx_alert" {
   alarm_actions       = [aws_sns_topic.alerts_topic.arn]
   metric_name         = "HTTPCode_ELB_5XX_Count"
   statistic           = "Sum"
-  threshold           = 10
+  threshold           = var.alb_5xx_threshold
   period              = 60
   treat_missing_data  = "notBreaching"
   dimensions          = { LoadBalancer = var.alb_arn_suffix }

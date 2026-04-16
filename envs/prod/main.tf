@@ -69,6 +69,13 @@ module "alb" {
   }
 }
 
+module "secretsmanager" {
+  source      = "../../modules/secret-manager"
+  environment = var.environment
+  db_username = var.db_user_name
+  db_password = var.db_password
+}
+
 module "rds" {
   source            = "../../modules/rds"
   environment       = var.environment
@@ -77,7 +84,7 @@ module "rds" {
   instance_class    = "db.t3.micro"
   db_name           = var.db_name
   db_user_name      = var.db_user_name
-  db_password       = var.db_password
+  secret_arn        = module.secretsmanager.secret_arn
 }
 
 resource "local_file" "ssh_info" {

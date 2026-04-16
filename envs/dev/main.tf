@@ -77,7 +77,7 @@ module "rds" {
   instance_class    = "db.t3.micro"
   db_name           = var.db_name
   db_user_name      = var.db_user_name
-  db_password       = var.db_password
+  secret_arn        = module.secretsmanager.secret_arn
 }
 
 resource "local_file" "ssh_info" {
@@ -154,4 +154,12 @@ module "cloudfront" {
   s3_bucket_id          = module.s3_frontend.bucket_id
   acm_certificate_arn   = module.acm.cloudfront_certificate_arn
   domain_name           = "cdn.${var.domain_name}"
+}
+
+module "secretsmanager" {
+  source      = "../../modules/secret-manager"
+  environment = var.environment
+  db_username = var.db_user_name
+  db_password = var.db_password
+
 }
