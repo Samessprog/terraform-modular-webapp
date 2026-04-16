@@ -30,6 +30,9 @@ resource "aws_db_instance" "rds-instance" {
   vpc_security_group_ids  = [var.security_group_id]
   backup_retention_period = 7
   skip_final_snapshot     = false
+  lifecycle {
+    prevent_destroy = true
+  }
   tags = {
     Name        = "${var.environment}-rds"
     Environment = var.environment
