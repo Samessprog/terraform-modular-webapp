@@ -28,3 +28,9 @@ variable "cpu_threshold" {
   type        = number
   default     = 80
 }
+
+variable "alb_5xx_threshold" {
+  description = "ALB 5xx error count threshold for alarms"
+  type        = number
+  default     = 10
+}
