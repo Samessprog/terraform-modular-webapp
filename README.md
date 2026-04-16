@@ -51,12 +51,14 @@ terraform-modular-webapp/
 │   ├── security_group/  # Security groups (ALB, Bastion, EC2, RDS) — least-privilege
 │   ├── ec2_instance/    # EC2 instances (bastion + 2x backend across AZs)
 │   ├── alb/             # Application Load Balancer, HTTPS listener, HTTP→HTTPS redirect
-│   ├── rds/             # RDS PostgreSQL — backups, final snapshot on destroy
+│   ├── rds/             # RDS PostgreSQL — backups, final snapshot, prevent_destroy
 │   ├── acm/             # ACM certificates (eu-central-1 for ALB, us-east-1 for CloudFront)
 │   ├── s3_bucket/       # Reusable S3 module (frontend static hosting + backend storage)
 │   ├── iam/             # IAM roles and instance profiles (EC2 → S3 access)
 │   ├── cloudtrail/      # AWS API audit logging to S3, multi-region, log validation
-│   └── cloudwatch/      # CloudWatch alarms (EC2/ALB/RDS) + SNS email notifications
+│   ├── cloudwatch/      # CloudWatch alarms (EC2/ALB/RDS) + SNS email notifications
+│   ├── cloudfront/      # CloudFront CDN with OAC, HTTPS, S3 bucket policy
+│   └── secret-manager/  # AWS Secrets Manager for RDS credentials
 ├── envs/
 │   ├── dev/             # Development environment (10.0.0.0/16)
 │   └── prod/            # Production environment (10.1.0.0/16)
@@ -82,13 +84,15 @@ terraform-modular-webapp/
 ### Storage & CDN
 - **S3 Frontend** — static website hosting (HTML/JS/CSS), public read via CloudFront
 - **S3 Backend** — file storage for backend (uploads, assets), versioning enabled
-- **CloudFront** — CDN distribution serving frontend from S3 with HTTPS (planned)
+- **CloudFront** — CDN distribution serving frontend from S3 with HTTPS, OAC for secure S3 access
 
 ### Security
 - **Security Groups** — separate SGs for ALB, Bastion, EC2, RDS with least-privilege rules
 - **ACM** — SSL/TLS certificates for ALB (eu-central-1) and CloudFront (us-east-1), multi-region
 - **IAM Roles** — EC2 instance profile with scoped S3 access, no hardcoded credentials
+- **Secrets Manager** — RDS credentials stored in AWS Secrets Manager, not in plaintext variables
 - **Private Subnets** — EC2 backends and RDS are not reachable from the internet
+- **lifecycle prevent_destroy** — RDS and state S3 bucket protected from accidental destruction
 
 ### Database
 - **RDS PostgreSQL 16** — db.t3.micro in private subnet
@@ -132,8 +136,8 @@ Pre-commit hooks run `fmt`, `validate` and `tflint` locally before every commit.
 | iam            | Done     |
 | cloudtrail     | Done     |
 | cloudwatch     | Done     |
-| cloudfront     | Planned  |
-| secrets_manager| Planned  |
+| cloudfront     | Done     |
+| secret-manager | Done     |
 
 ## Environments
 
