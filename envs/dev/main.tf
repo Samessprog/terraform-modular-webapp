@@ -146,3 +146,12 @@ module "cloudwatch" {
   rds_identifier = module.rds.rds_identifier
   cpu_threshold  = 75
 }
+
+module "cloudfront" {
+  source                = "../../modules/cloudfront"
+  environment           = var.environment
+  s3_bucket_domain_name = module.s3_frontend.bucket_domain_name
+  s3_bucket_id          = module.s3_frontend.bucket_id
+  acm_certificate_arn   = module.acm.cloudfront_certificate_arn
+  domain_name           = "cdn.${var.domain_name}"
+}
