@@ -15,10 +15,9 @@ resource "aws_lb" "main" {
   security_groups    = [var.security_group_id]
   subnets            = var.subnet_ids
 
-  tags = {
-    Name        = "${var.environment}-alb"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-alb"
+  })
 }
 
 resource "aws_lb_target_group" "lb-group" {

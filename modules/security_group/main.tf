@@ -13,10 +13,9 @@ resource "aws_security_group" "sg_alb" {
   description = "ALB security group"
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "${var.environment}-alb-sg"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-alb-sg"
+  })
 }
 
 resource "aws_vpc_security_group_egress_rule" "sg_egress_alb" {
@@ -46,10 +45,9 @@ resource "aws_security_group" "sg_bastion" {
   description = "Bastion host security group"
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "${var.environment}-bastion-sg"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-bastion-sg"
+  })
 }
 
 resource "aws_vpc_security_group_ingress_rule" "sg_ingress_ssh_bastion" {
@@ -71,10 +69,9 @@ resource "aws_security_group" "sg_ec2" {
   description = "EC2 security group"
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "${var.environment}-ec2-sg"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-ec2-sg"
+  })
 }
 
 resource "aws_vpc_security_group_egress_rule" "sg_egress_ec2" {
@@ -104,10 +101,9 @@ resource "aws_security_group" "sg_rds" {
   description = "RDS security group"
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "${var.environment}-rds-sg"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-rds-sg"
+  })
 }
 
 resource "aws_vpc_security_group_ingress_rule" "sg_ingress_rds" {

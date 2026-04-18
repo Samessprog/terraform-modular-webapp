@@ -34,3 +34,9 @@ variable "alb_5xx_threshold" {
   type        = number
   default     = 10
 }
+
+variable "tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

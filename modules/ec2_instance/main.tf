@@ -36,8 +36,7 @@ resource "aws_instance" "main" {
     delete_on_termination = true
   }
 
-  tags = {
-    Name        = "${var.environment}-${var.name}"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-${var.name}"
+  })
 }

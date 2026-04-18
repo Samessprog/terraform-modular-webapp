@@ -1,11 +1,19 @@
 terraform {
-  # backend "s3" {
-  #   bucket         = "terraform-state-modular-webapp"
-  #   key            = "dev/terraform.tfstate"
-  #   region         = "eu-central-1"
-  #   dynamodb_table = "terraform-state-lock-modular-webapp"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket         = "terraform-state-modular-webapp"
+    key            = "dev/terraform.tfstate"
+    region         = "eu-central-1"
+    dynamodb_table = "terraform-state-lock-modular-webapp"
+    encrypt        = true
+  }
+}
+
+locals {
+  common_tags = {
+    Project     = "terraform-modular-webapp"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
 }
 
 module "vpc" {
@@ -17,6 +25,7 @@ module "vpc" {
   public_subnet_1b_cidr  = var.public_subnet_1b_cidr
   private_subnet_1a_cidr = var.private_subnet_1a_cidr
   private_subnet_1b_cidr = var.private_subnet_1b_cidr
+  tags                   = local.common_tags
 }
 
 module "security_group" {
@@ -24,6 +33,7 @@ module "security_group" {
   environment = var.environment
   vpc_id      = module.vpc.vpc_id
   my_ip       = var.my_ip
+  tags        = local.common_tags
 }
 
 module "bastion" {
@@ -34,6 +44,7 @@ module "bastion" {
   subnet_id         = module.vpc.public_subnet_1a_id
   security_group_id = module.security_group.bastion_sg_id
   key_name          = var.key_name
+  tags              = local.common_tags
 }
 
 module "backend_1a" {
@@ -44,6 +55,7 @@ module "backend_1a" {
   security_group_id    = module.security_group.ec2_sg_id
   key_name             = var.key_name
   iam_instance_profile = module.iam.instance_profile_name
+  tags                 = local.common_tags
 }
 
 module "backend_1b" {
@@ -54,6 +66,7 @@ module "backend_1b" {
   security_group_id    = module.security_group.ec2_sg_id
   key_name             = var.key_name
   iam_instance_profile = module.iam.instance_profile_name
+  tags                 = local.common_tags
 }
 
 module "alb" {
@@ -67,6 +80,7 @@ module "alb" {
     backend_1a = module.backend_1a.instance_id
     backend_1b = module.backend_1b.instance_id
   }
+  tags = local.common_tags
 }
 
 module "rds" {
@@ -78,6 +92,7 @@ module "rds" {
   db_name           = var.db_name
   db_user_name      = var.db_user_name
   secret_arn        = module.secretsmanager.secret_arn
+  tags              = local.common_tags
 }
 
 resource "local_file" "ssh_info" {
@@ -92,6 +107,7 @@ resource "local_file" "ssh_info" {
 module "acm" {
   source      = "../../modules/acm"
   domain_name = var.domain_name
+  tags        = local.common_tags
 
   providers = {
     aws           = aws
@@ -102,23 +118,21 @@ module "acm" {
 module "s3_frontend" {
   source             = "../../modules/s3_bucket"
   bucket_name        = "frontend-${var.environment}-nerox"
-  environment        = var.environment
   versioning_enabled = false
 
-  tags = {
+  tags = merge(local.common_tags, {
     Purpose = "frontend"
-  }
+  })
 }
 
 module "s3_backend" {
   source             = "../../modules/s3_bucket"
   bucket_name        = "backend-${var.environment}-nerox"
-  environment        = var.environment
   versioning_enabled = true
 
-  tags = {
+  tags = merge(local.common_tags, {
     Purpose = "backend"
-  }
+  })
 }
 
 module "iam" {
@@ -126,12 +140,14 @@ module "iam" {
 
   environment           = var.environment
   s3_backend_bucket_arn = module.s3_backend.bucket_arn
+  tags                  = local.common_tags
 }
 
 module "cloudtrail" {
   source         = "../../modules/cloudtrail"
   environment    = var.environment
   s3_bucket_name = module.s3_backend.bucket_id
+  tags           = local.common_tags
 }
 
 module "cloudwatch" {
@@ -145,6 +161,7 @@ module "cloudwatch" {
   alb_arn_suffix = module.alb.alb_arn_suffix
   rds_identifier = module.rds.rds_identifier
   cpu_threshold  = 75
+  tags           = local.common_tags
 }
 
 module "cloudfront" {
@@ -154,6 +171,7 @@ module "cloudfront" {
   s3_bucket_id          = module.s3_frontend.bucket_id
   acm_certificate_arn   = module.acm.cloudfront_certificate_arn
   domain_name           = "cdn.${var.domain_name}"
+  tags                  = local.common_tags
 }
 
 module "secretsmanager" {
@@ -161,5 +179,5 @@ module "secretsmanager" {
   environment = var.environment
   db_username = var.db_user_name
   db_password = var.db_password
-
+  tags        = local.common_tags
 }

@@ -22,3 +22,9 @@ variable "domain_name" {
   description = "Custom domain name for CloudFront alias (e.g. cdn.nerox.xyz)"
   type        = string
 }
+
+variable "tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

@@ -11,9 +11,7 @@ terraform {
 resource "aws_s3_bucket" "bucket_name" {
   bucket = var.bucket_name
 
-  tags = merge(var.tags, {
-    Environment = var.environment
-  })
+  tags = var.tags
 }
 
 resource "aws_s3_bucket_versioning" "s3_versioning" {

@@ -11,10 +11,9 @@ terraform {
 resource "aws_db_subnet_group" "rds-group" {
   name       = "${var.environment}-rds-subnet-group"
   subnet_ids = var.subnet_ids
-  tags = {
-    Name        = "${var.environment}-rds-subnet-group"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-rds-subnet-group"
+  })
 }
 
 resource "aws_db_instance" "rds-instance" {
@@ -33,10 +32,9 @@ resource "aws_db_instance" "rds-instance" {
   lifecycle {
     prevent_destroy = true
   }
-  tags = {
-    Name        = "${var.environment}-rds"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-rds"
+  })
 }
 
 data "aws_secretsmanager_secret_version" "rds_secrets" {

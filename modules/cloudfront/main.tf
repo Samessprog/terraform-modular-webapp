@@ -53,9 +53,7 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 
-  tags = {
-    Environment = var.environment
-  }
+  tags = var.tags
 }
 
 data "aws_iam_policy_document" "cloudfront_s3_policy" {

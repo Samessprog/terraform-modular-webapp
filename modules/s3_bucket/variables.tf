@@ -3,11 +3,6 @@ variable "bucket_name" {
   description = "Bucket name"
 }
 
-variable "environment" {
-  type        = string
-  description = "Environment name"
-}
-
 variable "tags" {
   description = "Tags for bucket"
   type        = map(string)

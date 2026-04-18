@@ -13,3 +13,9 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

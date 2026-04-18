@@ -12,10 +12,9 @@ resource "aws_vpc" "main_vpc" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
 
-  tags = {
-    Name        = "${var.environment}-vpc"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-vpc"
+  })
 }
 
 resource "aws_subnet" "public_subnet_1a" {
@@ -24,10 +23,9 @@ resource "aws_subnet" "public_subnet_1a" {
   availability_zone       = "eu-central-1a"
   map_public_ip_on_launch = true
 
-  tags = {
-    Name        = "${var.environment}-public-subnet-1a"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-public-subnet-1a"
+  })
 }
 
 resource "aws_subnet" "public_subnet_1b" {
@@ -36,10 +34,9 @@ resource "aws_subnet" "public_subnet_1b" {
   availability_zone       = "eu-central-1b"
   map_public_ip_on_launch = true
 
-  tags = {
-    Name        = "${var.environment}-public-subnet-1b"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-public-subnet-1b"
+  })
 }
 
 resource "aws_subnet" "private_subnet_1a" {
@@ -47,10 +44,9 @@ resource "aws_subnet" "private_subnet_1a" {
   cidr_block        = var.private_subnet_1a_cidr
   availability_zone = "eu-central-1a"
 
-  tags = {
-    Name        = "${var.environment}-private-subnet-1a"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-private-subnet-1a"
+  })
 }
 
 resource "aws_subnet" "private_subnet_1b" {
@@ -58,19 +54,17 @@ resource "aws_subnet" "private_subnet_1b" {
   cidr_block        = var.private_subnet_1b_cidr
   availability_zone = "eu-central-1b"
 
-  tags = {
-    Name        = "${var.environment}-private-subnet-1b"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-private-subnet-1b"
+  })
 }
 
 resource "aws_internet_gateway" "main_gateway" {
   vpc_id = aws_vpc.main_vpc.id
 
-  tags = {
-    Name        = "${var.environment}-igw"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-igw"
+  })
 }
 
 resource "aws_route_table" "public_route_table" {
@@ -81,10 +75,9 @@ resource "aws_route_table" "public_route_table" {
     gateway_id = aws_internet_gateway.main_gateway.id
   }
 
-  tags = {
-    Name        = "${var.environment}-public-route-table"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-public-route-table"
+  })
 }
 
 resource "aws_route_table_association" "public_subnet_1a" {
@@ -100,10 +93,9 @@ resource "aws_route_table_association" "public_subnet_1b" {
 resource "aws_eip" "nat_ip" {
   domain = "vpc"
 
-  tags = {
-    Name        = "${var.environment}-eip"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-eip"
+  })
 }
 
 resource "aws_nat_gateway" "main_nat" {
@@ -111,10 +103,9 @@ resource "aws_nat_gateway" "main_nat" {
   allocation_id = aws_eip.nat_ip.id
   depends_on    = [aws_internet_gateway.main_gateway]
 
-  tags = {
-    Name        = "${var.environment}-nat"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-nat"
+  })
 }
 
 resource "aws_route_table" "private_route_table" {
@@ -125,10 +116,9 @@ resource "aws_route_table" "private_route_table" {
     nat_gateway_id = aws_nat_gateway.main_nat.id
   }
 
-  tags = {
-    Name        = "${var.environment}-private-route-table"
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-private-route-table"
+  })
 }
 
 resource "aws_route_table_association" "private_subnet_1a" {

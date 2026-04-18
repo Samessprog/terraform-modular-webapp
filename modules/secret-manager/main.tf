@@ -9,9 +9,7 @@ terraform {
 }
 resource "aws_secretsmanager_secret" "secret_manager" {
   name = "${var.environment}/rds/password"
-  tags = {
-    Environment = var.environment
-  }
+  tags = var.tags
 }
 
 resource "aws_secretsmanager_secret_version" "secret_manager_version" {

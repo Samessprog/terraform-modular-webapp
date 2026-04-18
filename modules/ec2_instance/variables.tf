@@ -46,3 +46,9 @@ variable "user_data" {
   type        = string
   default     = null
 }
+
+variable "tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}

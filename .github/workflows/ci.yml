@@ -17,13 +17,21 @@ jobs:
       - name: Terraform format check
         run: terraform fmt -check -recursive
 
-      - name: Terraform init
+      - name: Terraform init (dev)
         run: terraform init -backend=false
         working-directory: envs/dev
 
-      - name: Terraform validate
+      - name: Terraform validate (dev)
         run: terraform validate
         working-directory: envs/dev
+
+      - name: Terraform init (prod)
+        run: terraform init -backend=false
+        working-directory: envs/prod
+
+      - name: Terraform validate (prod)
+        run: terraform validate
+        working-directory: envs/prod
 
       - name: Setup tflint
         uses: terraform-linters/setup-tflint@v4

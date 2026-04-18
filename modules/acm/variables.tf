@@ -1,5 +1,11 @@
 variable "domain_name" {
   default     = "nerox.xyz"
-  description = "my domain name for cert"
+  description = "Domain name for ACM certificates"
   type        = string
+}
+
+variable "tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
 }

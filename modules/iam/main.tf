@@ -31,9 +31,9 @@ resource "aws_iam_role" "role" {
   name               = "${var.environment}-ec2-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 
-  tags = {
-    Environment = var.environment
-  }
+  tags = merge(var.tags, {
+    Name = "${var.environment}-ec2-role"
+  })
 }
 
 resource "aws_iam_role_policy" "role_policy" {

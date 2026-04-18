@@ -12,13 +12,12 @@ terraform {
 resource "aws_acm_certificate" "alb_certificate" {
   domain_name       = var.domain_name
   validation_method = "DNS"
-
+  tags              = var.tags
 }
 
 resource "aws_acm_certificate" "cloudfront_certificate" {
   domain_name       = var.domain_name
   validation_method = "DNS"
-
-  provider = aws.us_east_1
-
+  provider          = aws.us_east_1
+  tags              = var.tags
 }

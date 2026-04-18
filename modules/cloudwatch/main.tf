@@ -11,9 +11,7 @@ terraform {
 
 resource "aws_sns_topic" "alerts_topic" {
   name = "${var.environment}-alerts"
-  tags = {
-    Environment = var.environment
-  }
+  tags = var.tags
 }
 
 resource "aws_sns_topic_subscription" "topic_subscription" {

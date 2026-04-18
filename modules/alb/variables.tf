@@ -19,10 +19,17 @@ variable "vpc_id" {
 }
 
 variable "certificate_arn" {
-  type = string
+  description = "ACM certificate ARN for the HTTPS listener"
+  type        = string
 }
 
 variable "instance_ids" {
   description = "Map of EC2 instance IDs to attach to the target group"
   type        = map(string)
+}
+
+variable "tags" {
+  description = "Common tags to apply to all resources"
+  type        = map(string)
+  default     = {}
 }
